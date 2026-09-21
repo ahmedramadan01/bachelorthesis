@@ -1,0 +1,37 @@
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+
+.flex-container-v{
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top:16.5%;
+  left: 10%;
+}
+
+.flex-containervv{
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top:260px;
+  left: 80px;
+}
+
+.flex-container{
+  display: flex;
+  flex-wrap: wrap;
+  position: absolute;
+  top: 610px;
+}
+
+

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Screen.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Screen.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import styles from "./screen.module.css";
+import Softkey from "../UI/softkeys/Softkey";
+import React, { useState, lazy, Suspense } from "react";
+import brightnessIcon from "../../img/brightness.png";
+import contrastIcon from "../../img/contrast.png";
+import train2trainCall from "../../img/train2trainCall.png";
+import trainsCall from "../../img/trainsCall.png";
+import train2controlCenterCall from "../../img/train2controlCenterCall.png";
+import Brightness from "../subComponents/Brightness";
+import Message from "../message/Message";
+import Weather from "../weather/Weather"
+import CurrentLocation from "../subComponents/CurrentLocation";
+import cloud from "../../img/cloud.png";
+import Loader from "../subComponents/Loader";
+
+/**
+ * @typedef {destructuringArray} screenBrightness
+ */
+
+let clock = new Date().toLocaleTimeString();
+
+/**
+ * 
+ * @component
+ */
+const Screen = (props) => {
+  const [screenBrightness, setScreenBrightness] = useState("100");
+  const [showMessage, setShowMessage] = useState(false);
+  const [showBrightnessSlider, setShowBrightnessSlider] = useState(false);
+  const [showSysMenu, setShowSysMenu] = useState(false);
+  const [network, setNetwork] = useState("GSMR-D");
+  const [loading, setLoading] = useState(false);
+  const [showTrainDataForm, setShowTrainDataForm] = useState(false);
+  const [trainData, setTrainData] = useState({
+    num: "244567",
+    typ: "Fuehr FZ",
+    EVA: "RCA",
+  });
+  const [colorNetworkBar, setColorNetworkBar] = useState("");
+  const [showWeather, setShowWeather] = useState(false);
+  const [lastDigitOfServer, setLastDigitOfServer] = useState(0);
+  const [time, setTime] = useState(clock);
+  const [response, setResponse] = useState("");
+  const [responseColor, setResponseColor] = useState("");
+
+  const SysMenu = lazy(() => import('./SysMenu'));
+  const TrainDataForm = lazy(()=>import('../trainData/TrainDataForm'))
+
+
+  const updateTime = () => {
+    clock = new Date().toLocaleTimeString();
+    setTime(clock);
+  };
+
+  setInterval(updateTime);
+
+  /**
+   * @function receiveDataFromBrightness
+   * @param {string} data
+   * recieving brightness value from brightness components and then apply it to screen.
+   *  
+   */
+  const receiveDataFromBrightness = (data) => {
+    setScreenBrightness(data);
+  };
+
+  /**
+   * @function showBrightness
+   * Shows the brightness slider
+   */
+  const showBrightness = () => {
+    setShowBrightnessSlider(true);
+  };
+
+  /**
+   * @function showComm
+   * @param {int} lastDigit
+   * Shows the message form
+   * it depends which softkey is clicked
+   * last digit of the webserver will be passed to the function 
+   */
+  const showComm = (lastDigit) => {
+    setShowMessage(true);
+    setLastDigitOfServer(lastDigit);
+  };
+  const dontshowComm = () => {
+    if (showMessage === true) {
+      setShowMessage(false);
+    }
+    if (showBrightnessSlider === true) {
+      setShowBrightnessSlider(false);
+    }
+
+    if (showWeather === true) {
+      setShowWeather(false);
+    }
+
+    if (showSysMenu === true) {
+      setShowSysMenu(false);
+    }
+    if (showTrainDataForm === true) {
+      setShowTrainDataForm(false);
+    }
+
+    if (response !== "") {
+      setResponse("");
+      setResponseColor("");
+    }
+  };
+
+
+/**
+ * @function changeNetwork
+ * @param {string} network
+ * change the current network and simulate delay before changing network mode 
+ */
+  const changeNetwork = (network) => {
+    setLoading(true);
+    setTimeout(() => {
+      setNetwork(network);
+
+      setLoading(false);
+    }, 1000);
+    setShowSysMenu(false);
+  };
+
+  const showZD = () => {
+    setShowTrainDataForm(true);
+    setColorNetworkBar("green");
+  };
+
+  const handleSysMenu = () => {
+    setShowSysMenu(true);
+  };
+
+  /**
+   * @function handleDataFromTrainDataForm
+   * @param {object} tdata 
+   * changing train data
+   * @example tdata is {num:"123564","Typ":"Fuehr FZ","EVA":"RCA"}
+   * 
+   */
+  const handleDataFromTrainDataForm = (tdata) => {
+    console.log("Data from TrainData:", tdata);
+    setTrainData(tdata);
+    setShowTrainDataForm(false);
+    setColorNetworkBar("");
+  };
+
+  const handleWeather = () => {
+    setShowWeather(true);
+  };
+
+  /**
+   * @function receiveResponseFromServer
+   * @param {string} data 
+   * display a feedback to a user whether the data sent successfully or not.
+   */
+  const receiveResponseFromServer = (data) => {
+    setResponse(data);
+    if (data === "OK") {
+      setResponseColor("green");
+    } else {
+      setResponseColor("red");
+    }
+  };
+
+  /**
+   * @returns JSX.Element
+   */
+  return (
+    &lt;div className={styles.screenflexcontainer} onClick={props.dontshowComm}>
+      {showMessage &amp;&amp; (
+        &lt;Message
+          lastDigit={lastDigitOfServer}
+          sendResponseToScreen={receiveResponseFromServer}
+        />
+      )}
+      {showBrightnessSlider &amp;&amp; (
+        &lt;Brightness sendDataToScreen={receiveDataFromBrightness} />
+      )}
+      {showSysMenu &amp;&amp; &lt;Suspense fallback={&lt;Loader/>}>&lt;SysMenu changeNetwork={changeNetwork}/> &lt;/Suspense>}
+      {showTrainDataForm &amp;&amp; (
+        &lt;Suspense fallback={&lt;Loader/>}>&lt;TrainDataForm sendDataToScreen={handleDataFromTrainDataForm} />&lt;/Suspense>
+      )}
+      &lt;CurrentLocation />
+      &lt;p
+        style={{
+          position: "absolute",
+          fontSize: "20px",
+          left: "61%",
+          top: "40%",
+          color: `${responseColor}`,
+          fontWeight: "bold",
+          textAlign: "center",
+        }}
+      >
+        {response}
+      &lt;/p>
+      {showWeather &amp;&amp; &lt;Weather/>}
+      &lt;div className={styles.screenadjust}>
+        &lt;Softkey name="vol" alt=""/>
+        &lt;Softkey imgurl={contrastIcon} width="30px" height="30px" alt="contrast" />
+        &lt;Softkey
+          imgurl={brightnessIcon}
+          width="30px"
+          height="30px"
+          onClick={showBrightness}
+          alt="brightness"
+        />
+        &lt;Softkey
+          imgurl={cloud}
+          width="30px"
+          height="30px"
+          onClick={handleWeather}
+          alt="cloud"
+        />
+      &lt;/div>
+      &lt;div
+        className={styles.subscreen}
+        style={{ opacity: `${screenBrightness * 0.01}` }}
+        onClick={dontshowComm}
+      >
+        {loading &amp;&amp; &lt;Loader />}
+        &lt;div style={{ display: "flex", width: "100%" }}>
+          &lt;p className={styles.time}>{time}&lt;/p>
+          &lt;p className={styles.network}>{network}&lt;/p>
+        &lt;/div>
+        &lt;div className={styles.softkeycomm}>
+          &lt;Softkey
+            imgurl={train2trainCall}
+            width="47px"
+            height="47px"
+            onClick={() => showComm(0)}
+            alt="t2tCall"
+            id="soft_key_t2t"
+          />
+          &lt;Softkey
+            imgurl={trainsCall}
+            width="47px"
+            height="47px"
+            onClick={() => showComm(2)}
+            alt="groupCall"
+            id="soft_key_tc"
+          />
+          &lt;Softkey
+            imgurl={train2controlCenterCall}
+            width="47px"
+            height="47px"
+            onClick={() => showComm(1)}
+            alt="train2CC"
+            id="soft_key_tcc"
+          />
+          &lt;Softkey name="RF" alt=""/>
+          &lt;Softkey name="SYS" onClick={handleSysMenu} alt=""/>
+          &lt;Softkey name="ZD" onClick={showZD} alt=""/>
+          &lt;Softkey name="Menu" alt=""/>
+        &lt;/div>
+      &lt;/div>
+      &lt;div className={styles.rightscreen}>
+        &lt;ul>
+          Zug Daten
+          &lt;li>{trainData.num}&lt;/li>
+          &lt;li>{trainData.typ}&lt;/li>
+          &lt;li>{trainData.EVA}&lt;/li>
+        &lt;/ul>
+        &lt;div className={styles.networkSymbol}>
+          &lt;div
+            className={styles.barFour}
+            style={{ backgroundColor: `${colorNetworkBar}` }}
+          >&lt;/div>
+          &lt;div
+            className={styles.barThree}
+            style={{ backgroundColor: `${colorNetworkBar}` }}
+          >&lt;/div>
+          &lt;div className={styles.barTwo}>&lt;/div>
+          &lt;div className={styles.barOne}>&lt;/div>
+          &lt;div className={styles.barZero}>&lt;/div>
+        &lt;/div>
+      &lt;/div>
+    &lt;/div>
+  );
+};
+
+export default Screen;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#Screen">Screen</a></li><li><a href="global.html#changeNetwork">changeNetwork</a></li><li><a href="global.html#handleDataFromTrainDataForm">handleDataFromTrainDataForm</a></li><li><a href="global.html#receiveDataFromBrightness">receiveDataFromBrightness</a></li><li><a href="global.html#receiveResponseFromServer">receiveResponseFromServer</a></li><li><a href="global.html#showBrightnessShowsthebrightnessslider">showBrightness
+Shows the brightness slider</a></li><li><a href="global.html#showComm">showComm</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed May 22 2024 16:06:27 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

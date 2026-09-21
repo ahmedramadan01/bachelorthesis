@@ -1,0 +1,44 @@
+version: '3'
+services:
+  service1:
+    container_name: control_center
+    build:
+      context: ./Backend/webservers/betriebscentral/
+      dockerfile: Dockerfile
+    image: betriebscentral
+    ports:
+      - "5001:5001"
+  service2:
+    container_name: emergency
+    build:
+      context: ./Backend/webservers/Emergency/
+      dockerfile: Dockerfile
+    image: notfall
+    ports:
+      - "5003:5003"
+  service3:
+    container_name: train_dispatcher
+    build:
+      context: ./Backend/webservers/Fahrdienstleiter/
+      dockerfile: Dockerfile
+    image: fahrdienstleiter
+    ports:
+      - "5000:5000"
+  service4:
+    container_name: passengers
+    build:
+      context: ./Backend/webservers/zugbegleiter/
+      dockerfile: Dockerfile
+    image: zugbegleiter
+    ports:
+      - "5002:5002"
+  service5:
+    container_name: screen
+    build:
+      context: ./my-infotainment/
+      dockerfile: Dockerfile
+    image: frontend
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "3000:3000"
